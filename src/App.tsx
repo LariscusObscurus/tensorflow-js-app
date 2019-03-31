@@ -61,6 +61,8 @@ class App extends Component {
 
     for (const prediction of predictions) {
       const [x, y, width, height] = prediction.bbox;
+      const label = `${prediction.class} (${Math.round(prediction.score*100)}%)`;
+
       //Bounding Box
       ctx.strokeStyle = "#00FFFF";
       ctx.lineWidth = 4;
@@ -68,13 +70,13 @@ class App extends Component {
 
       //Label
       ctx.fillStyle = "#00FFFF";
-      const textWidth = ctx.measureText(prediction.class).width;
+      const textWidth = ctx.measureText(label).width;
       const textHeight = parseInt(font, 10); // base 10
       ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
 
       //Text
       ctx.fillStyle = "#000000";
-      ctx.fillText(prediction.class, x, y);
+      ctx.fillText(label, x, y);
     }
   }
 
