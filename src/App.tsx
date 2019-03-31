@@ -3,9 +3,14 @@ import "./App.css";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs"
 
+const TARGET_FPS = 10;
+const INTERVAL = 1000 / TARGET_FPS;
+
 class App extends Component {
   video = React.createRef<HTMLVideoElement>();
   canvas = React.createRef<HTMLCanvasElement>();
+
+  lastTimestamp = 0;
 
   async componentDidMount() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -32,6 +37,7 @@ class App extends Component {
 
             const model = await cocoSsd.load();
 
+            this.lastTimestamp = Date.now();
             await this.detectFrame(this.video.current, model);
         } catch (err) {
             console.error(err.message); // TODO inform user
@@ -40,8 +46,16 @@ class App extends Component {
   }
 
   async detectFrame(video: HTMLVideoElement, model: cocoSsd.ObjectDetection) {
-    const predictions = await model.detect(video);
-    this.renderPredictions(predictions);
+    const currentTimestamp = Date.now();
+    const elapsed = currentTimestamp - this.lastTimestamp;
+
+    if (elapsed > INTERVAL) {
+        // adjust to target FPS (source: https://stackoverflow.com/a/19772220)
+        this.lastTimestamp = currentTimestamp - (elapsed % INTERVAL);
+        const predictions = await model.detect(video);
+        this.renderPredictions(predictions);
+    }
+
     requestAnimationFrame(() => {
       this.detectFrame(video, model);
     });
