@@ -1,16 +1,23 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import "./App.css";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs"
 
 const TARGET_FPS = 10;
 const INTERVAL = 1000 / TARGET_FPS;
+const WINDOW_SIZE = 5 * TARGET_FPS;
 
 class App extends Component {
   video = React.createRef<HTMLVideoElement>();
   canvas = React.createRef<HTMLCanvasElement>();
 
   lastTimestamp = 0;
+  currentPredictionsIdx = 0;
+  objects = new Map<string, any>();
+
+  state = {
+      pics: []
+  };
 
   async componentDidMount() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -18,7 +25,7 @@ class App extends Component {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: {
-                    facingMode: "user"
+                    facingMode: "environment"
                 }
             });
 
@@ -28,11 +35,19 @@ class App extends Component {
             this.video.current.srcObject = stream;
 
             await new Promise((resolve, reject) => {
-                if (this.video.current) {
-                    this.video.current.onloadedmetadata = () => {
-                        resolve();
-                    };
+                if (!this.video.current) {
+                    return;
                 }
+                this.video.current.onloadedmetadata = () => {
+                    if (!this.video.current || !this.canvas.current) {
+                        return;
+                    }
+                    this.video.current.setAttribute('width', '' + this.video.current.offsetWidth);
+                    this.video.current.setAttribute('height', '' + this.video.current.offsetHeight);
+                    this.canvas.current.setAttribute('width', '' + this.video.current.offsetWidth);
+                    this.canvas.current.setAttribute('height', '' + this.video.current.offsetHeight);
+                    resolve();
+                };
             });
 
             const model = await cocoSsd.load();
@@ -54,6 +69,7 @@ class App extends Component {
         this.lastTimestamp = currentTimestamp - (elapsed % INTERVAL);
         const predictions = await model.detect(video);
         this.renderPredictions(predictions);
+        this.updateCurrentPredictions(predictions);
     }
 
     requestAnimationFrame(() => {
@@ -94,6 +110,46 @@ class App extends Component {
     }
   }
 
+  updateCurrentPredictions(predictions: cocoSsd.DetectedObject[]) {
+      predictions.forEach(pred => {
+          if (!this.objects.has(pred.class) && this.video.current) {
+              let [x, y, width, height] = pred.bbox;
+              const snippet = document.createElement('canvas');
+              const ctx = snippet.getContext('2d');
+              if (ctx) {
+                  x = Math.max(0, x);
+                  y = Math.max(0, y);
+                  snippet.width = width;
+                  snippet.height = height;
+                  ctx.drawImage(this.video.current, x, y, width, height, 0, 0, width, height);
+                  const imageData = snippet.toDataURL('image/png');
+                  this.objects.set(pred.class, imageData);
+              }
+          }
+      });
+
+      this.currentPredictionsIdx++;
+      if (this.currentPredictionsIdx > WINDOW_SIZE) {
+          this.currentPredictionsIdx = 0;
+          let storeObjs: Array<any> = [];
+          // const storageItem = localStorage.getItem('objects');
+          // if (storageItem !== null) {
+          //     storeObjs = JSON.parse(storageItem);
+          // }
+          this.objects.forEach((data, label) => {
+              storeObjs.push({
+                  data,
+                  label
+              });
+          });
+          this.setState((state: any) => ({
+              pics: [...state.pics, ...storeObjs]
+          }));
+          // localStorage.setItem('objects', JSON.stringify(storeObjs));
+          this.objects = new Map();
+      }
+  }
+
   render() {
     return (
       <div>
@@ -103,10 +159,13 @@ class App extends Component {
           playsInline
           muted
           ref={this.video}
-          width="600"
-          height="500"
         />
-        <canvas className="size" ref={this.canvas} width="600" height="500" />
+        <canvas className="size" ref={this.canvas}/>
+        <ul>
+            {this.state.pics.map(({data}) =>
+                <li><img src={data}/></li>
+            )}
+        </ul>
       </div>
     );
   }
