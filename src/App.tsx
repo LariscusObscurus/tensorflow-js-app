@@ -1,12 +1,14 @@
 import React, {Component} from "react";
-import "./App.css";
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import "@tensorflow/tfjs"
+import ImageList from "./ImageList";
+import "./App.css";
 
 const TARGET_FPS = 10;
 const INTERVAL = 1000 / TARGET_FPS;
 const WINDOW_SIZE = 5 * TARGET_FPS;
 
+// TODO refactor :P
 class App extends Component {
   video = React.createRef<HTMLVideoElement>();
   canvas = React.createRef<HTMLCanvasElement>();
@@ -16,7 +18,8 @@ class App extends Component {
   objects = new Map<string, any>();
 
   state = {
-      pics: []
+      pics: [],
+      previewEnlarged: false
   };
 
   async componentDidMount() {
@@ -161,11 +164,11 @@ class App extends Component {
           ref={this.video}
         />
         <canvas className="size" ref={this.canvas}/>
-        <ul>
-            {this.state.pics.map(({data}) =>
-                <li><img src={data}/></li>
-            )}
-        </ul>
+        <div className={`bar ${this.state.previewEnlarged ? 'is-enlarged' : ''}`}
+             onClick={() => this.setState((state: any)  => ({ previewEnlarged: !state.previewEnlarged }))}
+        >
+            <ImageList pics={this.state.pics}/>
+        </div>
       </div>
     );
   }
