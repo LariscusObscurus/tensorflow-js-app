@@ -9,29 +9,33 @@ class App extends Component {
 
   async componentDidMount() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: "user"
-          }
-        });
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    facingMode: "user"
+                }
+            });
 
-        if (!this.video.current) {
-          throw new Error("VideoRef is null.");
+            if (!this.video.current) {
+                throw new Error("VideoRef is null.");
+            }
+            this.video.current.srcObject = stream;
+
+            await new Promise((resolve, reject) => {
+                if (this.video.current) {
+                    this.video.current.onloadedmetadata = () => {
+                        resolve();
+                    };
+                }
+            });
+
+            const model = await cocoSsd.load();
+
+            await this.detectFrame(this.video.current, model);
+        } catch (err) {
+            console.error(err.message); // TODO inform user
         }
-        this.video.current.srcObject = stream;
-
-        await new Promise((resolve, reject) => {
-          if (this.video.current) {
-            this.video.current.onloadedmetadata = () => {
-              resolve();
-            };
-          }
-        });
-
-        const model = await cocoSsd.load();
-
-        await this.detectFrame(this.video.current, model);
     }
   }
 
