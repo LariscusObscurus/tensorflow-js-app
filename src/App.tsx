@@ -141,10 +141,22 @@ class App extends Component<any, IAppState> {
         const snippet = document.createElement('canvas');
         const ctx = snippet.getContext('2d');
         if (ctx) {
+          if (!this.video.current) return;
+
           x = Math.max(0, x);
           y = Math.max(0, y);
+
+          if (width + x > this.video.current.width - x) {
+            width = this.video.current.width - x;
+          }
+
+          if (height + y > this.video.current.height - y) {
+            height = this.video.current.height - y;
+          }
+
           snippet.width = width;
           snippet.height = height;
+
           ctx.drawImage(
             this.video.current,
             x,
@@ -163,9 +175,11 @@ class App extends Component<any, IAppState> {
     });
 
     this.currentPredictionsIdx++;
+
     if (!(this.currentPredictionsIdx > WINDOW_SIZE)) {
       return;
     }
+
     this.currentPredictionsIdx = 0;
     let storeObjs: Array<IDetectedImage> = [];
     // const storageItem = localStorage.getItem('objects');
@@ -178,6 +192,7 @@ class App extends Component<any, IAppState> {
         storeObjs.push({
           data: data,
           label: label,
+          key: Math.random(),
         });
     });
     this.setState((state: IAppState) => ({

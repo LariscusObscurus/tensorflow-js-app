@@ -9,9 +9,9 @@ interface IImageListProps {
 export default function(props: IImageListProps) {
   return (
     <ul className="image-list">
-      {props.pics.map(({ data }: IDetectedImage) => (
-        <li className="image-list__item">
-          <img className="image-list__image" src={data} />
+      {props.pics.map((detectedImage: IDetectedImage) => (
+        <li className="image-list__item" key={detectedImage.key}>
+          <img className="image-list__image" src={detectedImage.data} />
         </li>
       ))}
     </ul>
