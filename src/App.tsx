@@ -5,10 +5,8 @@ import ImageList from './ImageList';
 import './App.css';
 import { layers } from '@tensorflow/tfjs';
 import { IDetectedImage } from './IDetectedImage';
-
-const TARGET_FPS = 10;
-const INTERVAL = 1000 / TARGET_FPS;
-const WINDOW_SIZE = 5 * TARGET_FPS;
+import { INTERVAL, WINDOW_SIZE } from './Constants';
+import { VideoView } from './components/VideoView';
 
 interface IAppState {
   pics: IDetectedImage[];
@@ -17,8 +15,8 @@ interface IAppState {
 
 // TODO refactor :P
 class App extends Component<any, IAppState> {
-  video = React.createRef<HTMLVideoElement>();
   canvas = React.createRef<HTMLCanvasElement>();
+  model!: cocoSsd.ObjectDetection;
 
   lastTimestamp = 0;
   currentPredictionsIdx = 0;
@@ -30,77 +28,26 @@ class App extends Component<any, IAppState> {
   };
 
   async componentDidMount() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: 'environment',
-          },
-        });
-
-        if (!this.video.current) {
-          throw new Error('VideoRef is null.');
-        }
-        this.video.current.srcObject = stream;
-
-        await new Promise((resolve, reject) => {
-          if (!this.video.current) {
-            return;
-          }
-          this.video.current.onloadedmetadata = () => {
-            if (!this.video.current || !this.canvas.current) {
-              return;
-            }
-            this.video.current.setAttribute(
-              'width',
-              '' + this.video.current.offsetWidth
-            );
-            this.video.current.setAttribute(
-              'height',
-              '' + this.video.current.offsetHeight
-            );
-            this.canvas.current.setAttribute(
-              'width',
-              '' + this.video.current.offsetWidth
-            );
-            this.canvas.current.setAttribute(
-              'height',
-              '' + this.video.current.offsetHeight
-            );
-            resolve();
-          };
-        });
-
-        const model = await cocoSsd.load();
-
-        this.lastTimestamp = Date.now();
-        await this.detectFrame(this.video.current, model);
-      } catch (err) {
-        console.error(err.message); // TODO inform user
-      }
-    }
+    this.model = await cocoSsd.load();
+    console.log('Model loaded.');
   }
 
-  async detectFrame(video: HTMLVideoElement, model: cocoSsd.ObjectDetection) {
-    const currentTimestamp = Date.now();
-    const elapsed = currentTimestamp - this.lastTimestamp;
+  async detectFrame(video: HTMLVideoElement, elapsed: number) {
+    if (!this.model) return;
 
-    if (elapsed > INTERVAL) {
-      // adjust to target FPS (source: https://stackoverflow.com/a/19772220)
-      this.lastTimestamp = currentTimestamp - (elapsed % INTERVAL);
-      const predictions = await model.detect(video);
-      this.renderPredictions(predictions);
-      this.updateCurrentPredictions(predictions);
-    }
-
-    requestAnimationFrame(() => {
-      this.detectFrame(video, model);
-    });
+    const predictions = await this.model.detect(video);
+    this.renderPredictions(predictions, video);
+    this.updateCurrentPredictions(predictions, video);
   }
 
-  renderPredictions(predictions: cocoSsd.DetectedObject[]) {
+  renderPredictions(
+    predictions: cocoSsd.DetectedObject[],
+    video: HTMLVideoElement
+  ) {
     if (!this.canvas.current) throw new Error('CanvasRef is null.');
+
+    this.canvas.current.width = video.videoWidth;
+    this.canvas.current.height = video.videoHeight;
 
     const ctx = this.canvas.current.getContext('2d');
 
@@ -134,40 +81,31 @@ class App extends Component<any, IAppState> {
     }
   }
 
-  updateCurrentPredictions(predictions: cocoSsd.DetectedObject[]) {
+  updateCurrentPredictions(
+    predictions: cocoSsd.DetectedObject[],
+    video: HTMLVideoElement
+  ) {
     predictions.forEach(pred => {
-      if (!this.objects.has(pred.class) && this.video.current) {
+      if (!this.objects.has(pred.class) && video) {
         let [x, y, width, height] = pred.bbox;
         const snippet = document.createElement('canvas');
         const ctx = snippet.getContext('2d');
         if (ctx) {
-          if (!this.video.current) return;
-
           x = Math.max(0, x);
           y = Math.max(0, y);
 
-          if (width + x > this.video.current.width - x) {
-            width = this.video.current.width - x;
+          if (width + x > video.width - x) {
+            width = video.width - x;
           }
 
-          if (height + y > this.video.current.height - y) {
-            height = this.video.current.height - y;
+          if (height + y > video.height - y) {
+            height = video.height - y;
           }
 
           snippet.width = width;
           snippet.height = height;
 
-          ctx.drawImage(
-            this.video.current,
-            x,
-            y,
-            width,
-            height,
-            0,
-            0,
-            width,
-            height
-          );
+          ctx.drawImage(video, x, y, width, height, 0, 0, width, height);
           const imageData = snippet.toDataURL('image/png');
           this.objects.set(pred.class, imageData);
         }
@@ -205,7 +143,7 @@ class App extends Component<any, IAppState> {
   render() {
     return (
       <div>
-        <video className="size" autoPlay playsInline muted ref={this.video} />
+        <VideoView onFrame={this.detectFrame.bind(this)} interval={INTERVAL} />
         <canvas className="size" ref={this.canvas} />
         <div
           className={`bar ${this.state.previewEnlarged ? 'is-enlarged' : ''}`}
