@@ -8,6 +8,58 @@ import { IDetectedImage } from './IDetectedImage';
 import { INTERVAL, WINDOW_SIZE } from './Constants';
 import { VideoView } from './components/VideoView';
 import { CanvasView, BoundingBox } from './components/CanvasView';
+import Paper from '@material-ui/core/Paper';
+import { createStyles, withStyles } from '@material-ui/styles';
+/*
+.outsideWrapper{ 
+    width:256px; height:256px; 
+    margin:20px 60px; 
+    border:1px solid blue;}
+.insideWrapper{ 
+    width:100%; height:100%; 
+    position:relative;}
+.coveredImage{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+}
+.coveringCanvas{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+    background-color: rgba(255,0,0,.1);
+}*/
+
+const appStyles = createStyles({
+  outsideWrapper: {
+    backgroundColor: 'white',
+    width: '100%',
+    height: '100%',
+  },
+  insideWrapper: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  covered: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: '0px',
+    left: '0px',
+  },
+  covering: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: '0px',
+    left: '0px',
+  },
+  videoCanvasView: {
+    width: '50%',
+    height: '50%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+});
 
 interface IAppState {
   pics: IDetectedImage[];
@@ -127,17 +179,23 @@ class App extends Component<any, IAppState> {
 
   render() {
     return (
-      <div>
-        <VideoView
-          onFrame={this.detectFrame.bind(this)}
-          onInit={this.videoViewReady.bind(this)}
-          interval={INTERVAL}
-        />
-        <CanvasView
-          boundingBoxes={this.state.boundingBoxes}
-          width={this.state.videoSize.width}
-          height={this.state.videoSize.height}
-        />
+      <div className={this.props.classes.outsideWrapper}>
+        <Paper className={this.props.classes.videoCanvasView}>
+          <div className={this.props.classes.insideWrapper}>
+            <VideoView
+              className={this.props.classes.covered}
+              onFrame={this.detectFrame.bind(this)}
+              onInit={this.videoViewReady.bind(this)}
+              interval={INTERVAL}
+            />
+            <CanvasView
+              className={this.props.classes.covering}
+              boundingBoxes={this.state.boundingBoxes}
+              width={this.state.videoSize.width}
+              height={this.state.videoSize.height}
+            />
+          </div>
+        </Paper>
         <div
           className={`bar ${this.state.previewEnlarged ? 'is-enlarged' : ''}`}
           onClick={() =>
@@ -153,4 +211,4 @@ class App extends Component<any, IAppState> {
   }
 }
 
-export default App;
+export default withStyles(appStyles)(App);

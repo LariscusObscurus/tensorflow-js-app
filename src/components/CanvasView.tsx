@@ -11,7 +11,7 @@ interface ICanvasViewState {
   boundingBoxes: BoundingBox[];
 }
 
-interface ICanvasViewProps {
+interface ICanvasViewProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   boundingBoxes: BoundingBox[];
   width?: number;
   height?: number;

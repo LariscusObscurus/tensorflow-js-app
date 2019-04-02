@@ -11,7 +11,7 @@ type InitHandler = (width: number, height: number) => void | Promise<void>;
 
 interface IVideoViewState {}
 
-interface IVideoViewProps {
+interface IVideoViewProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   interval: number;
   onFrame: FrameHandler | null;
   onInit?: InitHandler | null;
