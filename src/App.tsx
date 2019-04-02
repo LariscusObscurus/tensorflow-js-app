@@ -7,29 +7,38 @@ import { layers } from '@tensorflow/tfjs';
 import { IDetectedImage } from './IDetectedImage';
 import { INTERVAL, WINDOW_SIZE } from './Constants';
 import { VideoView } from './components/VideoView';
+import { CanvasView, BoundingBox } from './components/CanvasView';
 
 interface IAppState {
   pics: IDetectedImage[];
   previewEnlarged: boolean;
+  boundingBoxes: BoundingBox[];
+  videoSize: { width: number; height: number };
 }
 
 // TODO refactor :P
 class App extends Component<any, IAppState> {
-  canvas = React.createRef<HTMLCanvasElement>();
   model!: cocoSsd.ObjectDetection;
 
-  lastTimestamp = 0;
   currentPredictionsIdx = 0;
   objects = new Map<string, string>();
 
-  state = {
+  state: IAppState = {
     pics: new Array<IDetectedImage>(),
     previewEnlarged: false,
+    boundingBoxes: new Array<BoundingBox>(),
+    videoSize: { width: 640, height: 480 },
   };
 
   async componentDidMount() {
     this.model = await cocoSsd.load();
     console.log('Model loaded.');
+  }
+
+  videoViewReady(width: number, height: number) {
+    this.setState((state: IAppState) => ({
+      videoSize: { width: width, height: height },
+    }));
   }
 
   async detectFrame(video: HTMLVideoElement, elapsed: number) {
@@ -44,41 +53,17 @@ class App extends Component<any, IAppState> {
     predictions: cocoSsd.DetectedObject[],
     video: HTMLVideoElement
   ) {
-    if (!this.canvas.current) throw new Error('CanvasRef is null.');
-
-    this.canvas.current.width = video.videoWidth;
-    this.canvas.current.height = video.videoHeight;
-
-    const ctx = this.canvas.current.getContext('2d');
-
-    if (!ctx) {
-      throw new Error('Could not get canvas context.');
-    }
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    const font = '16px sans-serif';
-    ctx.font = font;
-
-    for (const prediction of predictions) {
-      const [x, y, width, height] = prediction.bbox;
-      const label = `${prediction.class} (${Math.round(
-        prediction.score * 100
-      )}%)`;
-
-      //Bounding Box
-      ctx.strokeStyle = '#00FFFF';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(x, y, width, height);
-
-      //Label
-      ctx.fillStyle = '#00FFFF';
-      const textWidth = ctx.measureText(label).width;
-      const textHeight = parseInt(font, 10); // base 10
-      ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
-
-      //Text
-      ctx.fillStyle = '#000000';
-      ctx.fillText(label, x, y);
-    }
+    this.setState((state: IAppState) => ({
+      boundingBoxes: predictions.map(
+        prediction =>
+          ({
+            dimensions: prediction.bbox,
+            label: `${prediction.class} (${Math.round(
+              prediction.score * 100
+            )}%)`,
+          } as BoundingBox)
+      ),
+    }));
   }
 
   updateCurrentPredictions(
@@ -143,8 +128,16 @@ class App extends Component<any, IAppState> {
   render() {
     return (
       <div>
-        <VideoView onFrame={this.detectFrame.bind(this)} interval={INTERVAL} />
-        <canvas className="size" ref={this.canvas} />
+        <VideoView
+          onFrame={this.detectFrame.bind(this)}
+          onInit={this.videoViewReady.bind(this)}
+          interval={INTERVAL}
+        />
+        <CanvasView
+          boundingBoxes={this.state.boundingBoxes}
+          width={this.state.videoSize.width}
+          height={this.state.videoSize.height}
+        />
         <div
           className={`bar ${this.state.previewEnlarged ? 'is-enlarged' : ''}`}
           onClick={() =>

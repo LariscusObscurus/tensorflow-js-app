@@ -7,21 +7,23 @@ type FrameHandler = (
   elapsed: number
 ) => void | Promise<void>;
 
+type InitHandler = (width: number, height: number) => void | Promise<void>;
+
 interface IVideoViewState {}
 
 interface IVideoViewProps {
   interval: number;
   onFrame: FrameHandler | null;
+  onInit?: InitHandler | null;
 }
 
-const defaultProps = { interval: INTERVAL, onFrame: null };
+const defaultProps = { interval: INTERVAL, onFrame: null, onInit: null };
 
 export class VideoView extends Component<IVideoViewProps, IVideoViewState> {
-  props: IVideoViewProps = defaultProps;
-  state: IVideoViewState = {};
-
   video = React.createRef<HTMLVideoElement>();
   lastTimestamp = 0;
+
+  state = {};
 
   constructor(props: IVideoViewProps) {
     super(props);
@@ -52,6 +54,12 @@ export class VideoView extends Component<IVideoViewProps, IVideoViewState> {
             }
             this.video.current.width = this.video.current.videoWidth;
             this.video.current.height = this.video.current.videoHeight;
+
+            if (this.props.onInit)
+              this.props.onInit(
+                this.video.current.videoWidth,
+                this.video.current.videoHeight
+              );
             resolve();
           };
         });
