@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import '@tensorflow/tfjs';
-import ImageList from './ImageList';
+import ImageList from './components/ImageList';
 import './App.css';
 import { layers } from '@tensorflow/tfjs';
 import { IDetectedImage } from './IDetectedImage';
