@@ -39,6 +39,18 @@ const objectDetectorStyles = createStyles({
     marginLeft: 'auto',
     marginRight: 'auto',
   },
+  bar: {
+    position: 'fixed',
+    left: 0,
+    bottom: 0,
+    width: '100%',
+    height: '10vh',
+    background: 'white',
+    boxShadow: '0 0 10px 4px rgba(0, 0, 0, 0.75)',
+  },
+  isEnlarged: {
+    height: '50vh',
+  },
 });
 
 interface IObjectDetectorViewState {
@@ -177,7 +189,9 @@ class ObjectDetectorView extends Component<
           </div>
         </Paper>
         <div
-          className={`bar ${this.state.previewEnlarged ? 'is-enlarged' : ''}`}
+          className={`${this.props.classes.bar} ${
+            this.state.previewEnlarged ? this.props.classes.isEnlarged : ''
+          }`}
           onClick={() =>
             this.setState((state: any) => ({
               previewEnlarged: !state.previewEnlarged,

@@ -64,7 +64,7 @@ export class CanvasView extends Component<ICanvasViewProps, ICanvasViewState> {
   render() {
     return (
       <canvas
-        className="size"
+        className={this.props.className}
         ref={this.canvas}
         width={this.props.width}
         height={this.props.height}

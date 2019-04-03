@@ -88,7 +88,13 @@ export class VideoView extends Component<IVideoViewProps, IVideoViewState> {
 
   render() {
     return (
-      <video className="size" autoPlay playsInline muted ref={this.video} />
+      <video
+        className={this.props.className}
+        autoPlay
+        playsInline
+        muted
+        ref={this.video}
+      />
     );
   }
 }
