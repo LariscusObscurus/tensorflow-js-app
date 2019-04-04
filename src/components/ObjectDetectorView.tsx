@@ -1,5 +1,6 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 import { IDetectedImage } from '../IDetectedImage';
 import { BoundingBox, CanvasView } from './CanvasView';
 import { WINDOW_SIZE, INTERVAL } from '../Constants';
@@ -10,6 +11,7 @@ import { VideoView } from './VideoView';
 import classNames from 'classnames';
 import { checkSheet } from '../CssUtil';
 import { inherits } from 'util';
+import {knn} from 'ml-knn';
 
 const objectDetectorStyles = (theme: Theme) => {
   return checkSheet({
@@ -80,6 +82,7 @@ class ObjectDetectorView extends Component<
   IObjectDetectorViewState
 > {
   model!: cocoSsd.ObjectDetection;
+  modelMobilenet!: mobilenet.MobileNet;
 
   currentPredictionsIdx = 0;
   objects = new Map<string, string>();
@@ -95,6 +98,7 @@ class ObjectDetectorView extends Component<
   async componentDidMount() {
     this.showLoadingIndicator();
     this.model = await cocoSsd.load();
+    this.modelMobilenet = await mobilenet.load();
     this.hideLoadingIndicator();
     console.log('Model loaded.');
   }
@@ -121,6 +125,7 @@ class ObjectDetectorView extends Component<
     if (!this.model) return;
 
     const predictions = await this.model.detect(video);
+    
     this.renderPredictions(predictions, video);
     this.updateCurrentPredictions(predictions, video);
   }
@@ -195,6 +200,21 @@ class ObjectDetectorView extends Component<
     this.objects = new Map();
   }
 
+  private videoRef = createRef<VideoView>()
+
+  addObjectKnn() {
+
+    const vid = this.videoRef.current!.video.current!;
+    const activations = this.modelMobilenet.infer(vid);
+    // knn add 
+
+    alert("obj");
+  }
+
+  addEnvironmentKnn() {
+    alert("environ");
+  }
+
   render() {
     const { classes } = this.props;
     return (
@@ -202,6 +222,7 @@ class ObjectDetectorView extends Component<
         <Paper className={classes.paper}>
           <div className={classes.insideWrapper}>
             <VideoView
+              ref={this.videoRef}
               className={classes.covered}
               onFrame={this.detectFrame.bind(this)}
               onInit={this.videoViewReady.bind(this)}
@@ -220,6 +241,15 @@ class ObjectDetectorView extends Component<
             />
           </div>
         </Paper>
+
+        <div>
+          <button onClick={this.addObjectKnn.bind(this)}>
+          Add Object KNN
+          </button>
+          <button onClick={this.addEnvironmentKnn}>
+          Add Environment KNN
+          </button>
+        </div>
 
         <div
           className={classNames(classes.bar, {
