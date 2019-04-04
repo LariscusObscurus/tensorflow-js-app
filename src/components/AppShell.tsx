@@ -64,6 +64,7 @@ const styles = (theme: Theme) => {
       justifyContent: 'flex-end',
     },
     content: {
+      marginTop: theme.spacing.unit * 10,
       flexGrow: 1,
       padding: theme.spacing.unit * 3,
       transition: theme.transitions.create('margin', {
@@ -81,15 +82,20 @@ const styles = (theme: Theme) => {
     },
   };
 };
+export interface IMenuEntry {
+  title: string;
+  action: () => void;
+}
 
 interface IAppShellState {
   drawerOpen: boolean;
 }
 
-class AppShell extends Component<
-  WithStyles<typeof styles, true>,
-  IAppShellState
-> {
+interface IAppShellProps extends WithStyles<typeof styles, true> {
+  menuEntries: IMenuEntry[];
+}
+
+class AppShell extends Component<IAppShellProps, IAppShellState> {
   state: IAppShellState = {
     drawerOpen: false,
   };
@@ -102,7 +108,7 @@ class AppShell extends Component<
 
   render() {
     const { drawerOpen } = this.state;
-    const { classes, children, theme } = this.props;
+    const { classes, children, theme, menuEntries } = this.props;
     return (
       <React.Fragment>
         <div className={classes.root}>
@@ -149,12 +155,12 @@ class AppShell extends Component<
             </div>
             <Divider />
             <List>
-              {['Welcome'].map((text, index) => (
-                <ListItem button key={text}>
+              {menuEntries.map((entry, index) => (
+                <ListItem button key={entry.title} onClick={entry.action}>
                   <ListItemIcon>
                     {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
                   </ListItemIcon>
-                  <ListItemText primary={text} />
+                  <ListItemText primary={entry.title} />
                 </ListItem>
               ))}
             </List>

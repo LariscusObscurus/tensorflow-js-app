@@ -93,10 +93,12 @@ class ObjectDetectorView extends Component<
   };
 
   async componentDidMount() {
-    this.showLoadingIndicator();
-    this.model = await cocoSsd.load();
-    this.hideLoadingIndicator();
-    console.log('Model loaded.');
+    if (!this.model) {
+      this.showLoadingIndicator();
+      this.model = await cocoSsd.load();
+      console.log('Model loaded.');
+      this.hideLoadingIndicator();
+    }
   }
 
   showLoadingIndicator() {
