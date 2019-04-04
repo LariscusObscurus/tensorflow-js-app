@@ -2,23 +2,20 @@ import React, { Component } from 'react';
 import { WithStyles, withStyles } from '@material-ui/styles';
 import {
   AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Button,
-  Theme,
-  Drawer,
   Divider,
+  Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemText,
+  Theme,
+  Toolbar,
+  Typography,
 } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 import classNames from 'classnames';
 
 const drawerWidth = 240;
@@ -64,9 +61,8 @@ const styles = (theme: Theme) => {
       justifyContent: 'flex-end',
     },
     content: {
-      marginTop: theme.spacing.unit * 10,
+      marginTop: theme.spacing.unit * 8,
       flexGrow: 1,
-      padding: theme.spacing.unit * 3,
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
@@ -84,6 +80,7 @@ const styles = (theme: Theme) => {
 };
 export interface IMenuEntry {
   title: string;
+  icon: React.ComponentType;
   action: () => void;
 }
 
@@ -158,7 +155,7 @@ class AppShell extends Component<IAppShellProps, IAppShellState> {
               {menuEntries.map((entry, index) => (
                 <ListItem button key={entry.title} onClick={entry.action}>
                   <ListItemIcon>
-                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                    <entry.icon/>
                   </ListItemIcon>
                   <ListItemText primary={entry.title} />
                 </ListItem>

@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import HomeIcon from '@material-ui/icons/Home';
+import CameraIcon from '@material-ui/icons/CameraAlt';
 import './App.css';
 import ObjectDetectorView from './components/ObjectDetectorView';
 import AppShell, { IMenuEntry } from './components/AppShell';
@@ -17,6 +19,7 @@ class App extends Component<IAppProps, IAppState> {
     menuEntries: [
       {
         title: 'Welcome',
+        icon: HomeIcon,
         action: () =>
           this.setState({
             activePage: this.showWelcomePage(),
@@ -24,6 +27,7 @@ class App extends Component<IAppProps, IAppState> {
       },
       {
         title: 'ObjectDetection',
+        icon: CameraIcon,
         action: () =>
           this.setState({
             activePage: this.showObjectDection(),

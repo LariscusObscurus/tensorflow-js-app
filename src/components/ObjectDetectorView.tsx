@@ -2,14 +2,13 @@ import React, { Component } from 'react';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import { IDetectedImage } from '../IDetectedImage';
 import { BoundingBox, CanvasView } from './CanvasView';
-import { WINDOW_SIZE, INTERVAL } from '../Constants';
+import { INTERVAL, WINDOW_SIZE } from '../Constants';
 import ImageList from './ImageList';
-import { Paper, Theme, CircularProgress } from '@material-ui/core';
+import { CircularProgress, Theme } from '@material-ui/core';
 import { withStyles, WithStyles } from '@material-ui/styles';
 import { VideoView } from './VideoView';
 import classNames from 'classnames';
 import { checkSheet } from '../CssUtil';
-import { inherits } from 'util';
 
 const objectDetectorStyles = (theme: Theme) => {
   return checkSheet({
@@ -26,15 +25,15 @@ const objectDetectorStyles = (theme: Theme) => {
     },
     insideWrapper: {
       position: 'relative',
+      overflow: 'hidden',
+      maxWidth: '100vw'
     },
     covered: {
-      width: 'inherit',
     },
     covering: {
-      width: 'inherit',
       position: 'absolute',
-      top: '0px',
-      left: '0px',
+      top: '0',
+      left: '0',
     },
     videoCanvasView: {
       marginLeft: 'auto',
@@ -53,7 +52,6 @@ const objectDetectorStyles = (theme: Theme) => {
       height: '50vh',
     },
     layout: {
-      padding: 20,
       marginLeft: 'auto',
       marginRight: 'auto',
     },
@@ -88,7 +86,7 @@ class ObjectDetectorView extends Component<
     pics: new Array<IDetectedImage>(),
     previewEnlarged: false,
     boundingBoxes: new Array<BoundingBox>(),
-    videoSize: { width: 640, height: 480 },
+    videoSize: { width: window.innerWidth, height: window.innerHeight },
     loading: true,
   };
 
@@ -114,8 +112,8 @@ class ObjectDetectorView extends Component<
   }
 
   videoViewReady(width: number, height: number) {
-    this.setState((state: IObjectDetectorViewState) => ({
-      videoSize: { width: width, height: height },
+    this.setState(() => ({
+      videoSize: { width, height },
     }));
   }
 
@@ -201,27 +199,26 @@ class ObjectDetectorView extends Component<
     const { classes } = this.props;
     return (
       <div className={classes.layout}>
-        <Paper className={classes.paper}>
-          <div className={classes.insideWrapper}>
-            <VideoView
-              className={classes.covered}
-              onFrame={this.detectFrame.bind(this)}
-              onInit={this.videoViewReady.bind(this)}
-              interval={INTERVAL}
-            />
-            <CanvasView
-              className={classes.covering}
-              boundingBoxes={this.state.boundingBoxes}
-              width={this.state.videoSize.width}
-              height={this.state.videoSize.height}
-            />
-            <CircularProgress
-              className={classNames(classes.progress, {
-                [classes.hide]: !this.state.loading,
-              })}
-            />
-          </div>
-        </Paper>
+
+        <div className={classes.insideWrapper}>
+          <VideoView
+            className={classes.covered}
+            onFrame={this.detectFrame.bind(this)}
+            onInit={this.videoViewReady.bind(this)}
+            interval={INTERVAL}
+          />
+          <CanvasView
+            className={classes.covering}
+            boundingBoxes={this.state.boundingBoxes}
+            width={this.state.videoSize.width}
+            height={this.state.videoSize.height}
+          />
+          <CircularProgress
+            className={classNames(classes.progress, {
+              [classes.hide]: !this.state.loading,
+            })}
+          />
+        </div>
 
         <div
           className={classNames(classes.bar, {
