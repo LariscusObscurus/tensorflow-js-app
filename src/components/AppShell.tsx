@@ -24,7 +24,6 @@ import classNames from 'classnames';
 const drawerWidth = 240;
 
 const styles = (theme: Theme) => {
-  console.log(theme);
   return {
     root: {
       display: 'flex',
