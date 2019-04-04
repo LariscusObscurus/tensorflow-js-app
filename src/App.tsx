@@ -13,7 +13,7 @@ class App extends Component<IAppProps, IAppState> {
     return (
       <React.Fragment>
         <AppShell>
-          <ObjectDetectorView />;
+          <ObjectDetectorView />
         </AppShell>
       </React.Fragment>
     );

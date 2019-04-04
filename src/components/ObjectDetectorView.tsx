@@ -7,6 +7,7 @@ import ImageList from './ImageList';
 import { Paper } from '@material-ui/core';
 import { createStyles, withStyles, WithStyles } from '@material-ui/styles';
 import { VideoView } from './VideoView';
+import classNames from 'classnames';
 
 const objectDetectorStyles = createStyles({
   outsideWrapper: {
@@ -50,6 +51,11 @@ const objectDetectorStyles = createStyles({
   },
   isEnlarged: {
     height: '50vh',
+  },
+  layout: {
+    padding: 20,
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
 });
 
@@ -170,10 +176,11 @@ class ObjectDetectorView extends Component<
   }
 
   render() {
+    const { classes } = this.props;
     return (
-      <div className={this.props.classes.outsideWrapper}>
+      <div className={this.props.classes.layout}>
         <Paper className={this.props.classes.videoCanvasView}>
-          <div className={this.props.classes.insideWrapper}>
+          <div>
             <VideoView
               className={this.props.classes.covered}
               onFrame={this.detectFrame.bind(this)}
@@ -188,10 +195,11 @@ class ObjectDetectorView extends Component<
             />
           </div>
         </Paper>
+
         <div
-          className={`${this.props.classes.bar} ${
-            this.state.previewEnlarged ? this.props.classes.isEnlarged : ''
-          }`}
+          className={classNames(classes.bar, {
+            [classes.isEnlarged]: this.state.previewEnlarged,
+          })}
           onClick={() =>
             this.setState((state: any) => ({
               previewEnlarged: !state.previewEnlarged,

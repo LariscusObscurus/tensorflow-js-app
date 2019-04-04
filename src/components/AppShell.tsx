@@ -8,8 +8,17 @@ import {
   Button,
   Theme,
   Drawer,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
 } from '@material-ui/core';
 import MenuIcon from '@material-ui/icons/Menu';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import InboxIcon from '@material-ui/icons/MoveToInbox';
+import MailIcon from '@material-ui/icons/Mail';
 import classNames from 'classnames';
 
 const drawerWidth = 240;
@@ -48,6 +57,29 @@ const styles = (theme: Theme) => {
     drawerPaper: {
       width: drawerWidth,
     },
+    drawerHeader: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 8px',
+      ...theme.mixins.toolbar,
+      justifyContent: 'flex-end',
+    },
+    content: {
+      flexGrow: 1,
+      padding: theme.spacing.unit * 3,
+      transition: theme.transitions.create('margin', {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+      }),
+      marginLeft: -drawerWidth,
+    },
+    contentShift: {
+      transition: theme.transitions.create('margin', {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      marginLeft: 0,
+    },
   };
 };
 
@@ -55,7 +87,10 @@ interface IAppShellState {
   drawerOpen: boolean;
 }
 
-class AppShell extends Component<WithStyles<typeof styles>, IAppShellState> {
+class AppShell extends Component<
+  WithStyles<typeof styles, true>,
+  IAppShellState
+> {
   state: IAppShellState = {
     drawerOpen: false,
   };
@@ -68,7 +103,7 @@ class AppShell extends Component<WithStyles<typeof styles>, IAppShellState> {
 
   render() {
     const { drawerOpen } = this.state;
-    const { classes, children } = this.props;
+    const { classes, children, theme } = this.props;
     return (
       <React.Fragment>
         <div className={classes.root}>
@@ -104,10 +139,35 @@ class AppShell extends Component<WithStyles<typeof styles>, IAppShellState> {
               paper: classes.drawerPaper,
             }}
           >
-            <div />
+            <div className={classes.drawerHeader}>
+              <IconButton onClick={this.closeDrawer.bind(this)}>
+                {theme.direction === 'ltr' ? (
+                  <ChevronLeftIcon />
+                ) : (
+                  <ChevronRightIcon />
+                )}
+              </IconButton>
+            </div>
+            <Divider />
+            <List>
+              {['Welcome'].map((text, index) => (
+                <ListItem button key={text}>
+                  <ListItemIcon>
+                    {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  </ListItemIcon>
+                  <ListItemText primary={text} />
+                </ListItem>
+              ))}
+            </List>
           </Drawer>
+          <main
+            className={classNames(classes.content, {
+              [classes.contentShift]: drawerOpen,
+            })}
+          >
+            {children}
+          </main>
         </div>
-        {children}
       </React.Fragment>
     );
   }
