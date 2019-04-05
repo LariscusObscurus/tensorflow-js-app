@@ -1,17 +1,19 @@
-import React, { Component } from 'react';
+import React, { Component, ReactNode } from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import CameraIcon from '@material-ui/icons/CameraAlt';
+import CallSplitIcon from '@material-ui/icons/CallSplit';
 import './App.css';
 import ObjectDetectorView from './components/ObjectDetectorView';
 import AppShell, { IMenuEntry } from './components/AppShell';
 import { withRoot } from './Theme';
 import { WelcomePage } from './components/WelcomePage';
+import KnnTest from './components/KnnTest';
 
 interface IAppProps {}
 
 interface IAppState {
   menuEntries: IMenuEntry[];
-  activePage: JSX.Element;
+  activePage: ReactNode;
 }
 
 class App extends Component<IAppProps, IAppState> {
@@ -33,6 +35,14 @@ class App extends Component<IAppProps, IAppState> {
             activePage: this.showObjectDection(),
           }),
       },
+      {
+        title: 'KnnDingens',
+        icon: CallSplitIcon,
+        action: () =>
+          this.setState({
+            activePage: this.showKNNDection(),
+          }),
+      },
     ],
     activePage: this.showWelcomePage(),
   };
@@ -43,6 +53,10 @@ class App extends Component<IAppProps, IAppState> {
 
   showObjectDection() {
     return <ObjectDetectorView />;
+  }
+
+  showKNNDection() {
+    return <KnnTest />;
   }
 
   render() {
