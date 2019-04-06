@@ -8,6 +8,7 @@ import AppShell, { IMenuEntry } from './components/AppShell';
 import { withRoot } from './Theme';
 import { WelcomePage } from './components/WelcomePage';
 import KnnTest from './components/KnnTest';
+import DrawingView from './components/DrawingView';
 
 interface IAppProps {}
 
@@ -43,8 +44,16 @@ class App extends Component<IAppProps, IAppState> {
             activePage: this.showKNNDection(),
           }),
       },
+      {
+        title: 'Draw',
+        icon: CallSplitIcon,
+        action: () =>
+          this.setState({
+            activePage: this.showDrawingView(),
+          }),
+      },
     ],
-    activePage: this.showObjectDection(),
+    activePage: this.showWelcomePage(),
   };
 
   showWelcomePage() {
@@ -57,6 +66,10 @@ class App extends Component<IAppProps, IAppState> {
 
   showKNNDection() {
     return <KnnTest />;
+  }
+
+  showDrawingView() {
+    return <DrawingView width={500} height={500} />;
   }
 
   render() {
