@@ -11,6 +11,7 @@ import ImageListIcon from '@material-ui/icons/PhotoAlbum';
 import { VideoView } from './VideoView';
 import classNames from 'classnames';
 import { checkSheet } from '../CssUtil';
+import fetchDetails from '../fetchDetails';
 
 const objectDetectorStyles = (theme: Theme) => {
   return checkSheet({
@@ -183,6 +184,16 @@ class ObjectDetectorView extends Component<
     this.objects = new Map();
   }
 
+  resolveDetails(img: IDetectedImage, idx: number) {
+    fetchDetails(img).then(imgWithDetails => {
+      const pics = [...this.state.pics];
+      const item = { ...pics[idx] };
+      item.details = imgWithDetails.details;
+      pics[idx] = item;
+      this.setState({ pics });
+    });
+  }
+
   render() {
     const { classes } = this.props;
     return (
@@ -216,7 +227,10 @@ class ObjectDetectorView extends Component<
         <div className={classNames(classes.insideWrapper, {
           [classes.hide]: this.state.activeView !== 1
         })}>
-          <ImageList pics={this.state.pics}/>
+          <ImageList
+            pics={this.state.pics}
+            onSelectImage={(img, idx) => this.resolveDetails(img, idx)}
+          />
         </div>
 
         <BottomNavigation
