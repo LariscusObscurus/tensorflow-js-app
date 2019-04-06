@@ -4,8 +4,10 @@ import { IDetectedImage } from '../IDetectedImage';
 import { BoundingBox, CanvasView } from './CanvasView';
 import { INTERVAL, WINDOW_SIZE } from '../Constants';
 import ImageList from './ImageList';
-import { CircularProgress, Theme } from '@material-ui/core';
+import { BottomNavigation, CircularProgress, Theme, BottomNavigationAction } from '@material-ui/core';
 import { withStyles, WithStyles } from '@material-ui/styles';
+import CameraIcon from '@material-ui/icons/CameraAlt';
+import ImageListIcon from '@material-ui/icons/PhotoAlbum';
 import { VideoView } from './VideoView';
 import classNames from 'classnames';
 import { checkSheet } from '../CssUtil';
@@ -17,11 +19,6 @@ const objectDetectorStyles = (theme: Theme) => {
     },
     hide: {
       display: 'none',
-    },
-    outsideWrapper: {
-      backgroundColor: 'white',
-      width: '100%',
-      height: '100%',
     },
     insideWrapper: {
       position: 'relative',
@@ -39,31 +36,22 @@ const objectDetectorStyles = (theme: Theme) => {
       marginLeft: 'auto',
       marginRight: 'auto',
     },
-    bar: {
-      position: 'fixed',
-      left: 0,
-      bottom: 0,
-      width: '100%',
-      height: '10vh',
-      background: 'white',
-      boxShadow: '0 0 10px 4px rgba(0, 0, 0, 0.75)',
-    },
-    isEnlarged: {
-      height: '50vh',
-    },
     layout: {
       marginLeft: 'auto',
       marginRight: 'auto',
     },
-    paper: {
-      marginTop: '40px',
-    },
+    bottomNavigation: {
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      width: '100vw'
+    }
   });
 };
 
 interface IObjectDetectorViewState {
   pics: IDetectedImage[];
-  previewEnlarged: boolean;
+  activeView: number;
   boundingBoxes: BoundingBox[];
   videoSize: { width: number; height: number };
   loading: boolean;
@@ -84,7 +72,7 @@ class ObjectDetectorView extends Component<
 
   state: IObjectDetectorViewState = {
     pics: new Array<IDetectedImage>(),
-    previewEnlarged: false,
+    activeView: 0,
     boundingBoxes: new Array<BoundingBox>(),
     videoSize: { width: window.innerWidth, height: window.innerHeight },
     loading: true,
@@ -198,41 +186,48 @@ class ObjectDetectorView extends Component<
   render() {
     const { classes } = this.props;
     return (
-      <div className={classes.layout}>
-
-        <div className={classes.insideWrapper}>
-          <VideoView
-            className={classes.covered}
-            onFrame={this.detectFrame.bind(this)}
-            onInit={this.videoViewReady.bind(this)}
-            interval={INTERVAL}
-          />
-          <CanvasView
-            className={classes.covering}
-            boundingBoxes={this.state.boundingBoxes}
-            width={this.state.videoSize.width}
-            height={this.state.videoSize.height}
-          />
-          <CircularProgress
-            className={classNames(classes.progress, {
-              [classes.hide]: !this.state.loading,
-            })}
-          />
-        </div>
-
+      <React.Fragment>
         <div
-          className={classNames(classes.bar, {
-            [classes.isEnlarged]: this.state.previewEnlarged,
+          className={classNames(classes.layout, {
+            [classes.hide]: this.state.activeView !== 0
           })}
-          onClick={() =>
-            this.setState((state: any) => ({
-              previewEnlarged: !state.previewEnlarged,
-            }))
-          }
         >
-          <ImageList pics={this.state.pics} />
+          <div className={classes.insideWrapper}>
+            <VideoView
+              className={classes.covered}
+              onFrame={this.detectFrame.bind(this)}
+              onInit={this.videoViewReady.bind(this)}
+              interval={INTERVAL}
+            />
+            <CanvasView
+              className={classes.covering}
+              boundingBoxes={this.state.boundingBoxes}
+              width={this.state.videoSize.width}
+              height={this.state.videoSize.height}
+            />
+            <CircularProgress
+              className={classNames(classes.progress, {
+                [classes.hide]: !this.state.loading,
+              })}
+            />
+          </div>
         </div>
-      </div>
+
+        <div className={classNames(classes.insideWrapper, {
+          [classes.hide]: this.state.activeView !== 1
+        })}>
+          <ImageList pics={this.state.pics}/>
+        </div>
+
+        <BottomNavigation
+          className={classes.bottomNavigation}
+          value={this.state.activeView}
+          onChange={(ev, value) => this.setState({ activeView: value })}
+        >
+          <BottomNavigationAction label="Camera" icon={<CameraIcon/>} />
+          <BottomNavigationAction label="Gallery" icon={<ImageListIcon/>} />
+        </BottomNavigation>
+      </React.Fragment>
     );
   }
 }

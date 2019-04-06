@@ -44,7 +44,7 @@ class App extends Component<IAppProps, IAppState> {
           }),
       },
     ],
-    activePage: this.showWelcomePage(),
+    activePage: this.showObjectDection(),
   };
 
   showWelcomePage() {
