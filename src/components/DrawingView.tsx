@@ -18,7 +18,7 @@ type FrameHandler = (
 ) => void | Promise<void>;
 
 interface IDrawingViewState { 
-  data:string;
+  prediction: string;
 }
 
 interface IDrawingViewProps
@@ -35,7 +35,7 @@ interface IPosition {
 }
 
 class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
-  state: IDrawingViewState = {data: ""};
+  state: IDrawingViewState = {prediction: "-"};
 
   canvas = React.createRef<HTMLCanvasElement>();
   ctx: CanvasRenderingContext2D | null = null;
@@ -84,11 +84,6 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
 
     resizeCanvasCtx.drawImage(this.canvas.current, 0, 0, this.props.width, this.props.height, 0, 0, 28, 28);
 
-    // let imgNum = document.createElement("img");
-    // imgNum.src = resizeCanvas.toDataURL("image/png");
-    // document.body.appendChild(imgNum);
-
-    this.setState({data: resizeCanvas.toDataURL()});
 
     const data = resizeCanvasCtx.getImageData(0, 0, 28, 28).data;
 
@@ -96,7 +91,7 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
     for (let i = 3; i < data.length; i += 4) {
         imageArr.push(data[i] / 255) ;
     }
-    // console.log(imageArr);
+
     let postData = JSON.stringify({data: [imageArr]});
     let url = "https://mal2-api.azure-api.net/mnist/score"
 
@@ -112,11 +107,11 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
        referrer: "no-referrer", // no-referrer, *client
        body: postData, // body data type must match "Content-Type" header
     })
-    .then(function(response) {
+    .then((response) => {
         return response.json();
     })
-    .then(function(myJson) {
-        alert(myJson[0]);
+    .then((myJson) => {
+      this.setState({prediction: myJson[0]});
     });     
   }
 
@@ -126,6 +121,12 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
       offsetY,
       drag
     });
+  }
+
+  clearImage() {
+    this.lines = [];
+    this.setState({prediction: "-"});
+    this.paint();
   }
 
   paint() {
@@ -171,7 +172,10 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
           />
         </Paper>
         <Button onClick={this.createImage.bind(this)}>Predict</Button>
-        {this.state.data ? <img src={this.state.data}/> : <div />}
+        <Button onClick={this.clearImage.bind(this)}>Clear</Button>
+        <Typography variant="h6" color="inherit" noWrap>
+          Predicted number: {this.state.prediction}
+        </Typography>
       </React.Fragment>
     );
   }
