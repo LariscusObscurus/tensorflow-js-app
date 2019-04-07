@@ -83,15 +83,20 @@ class DrawingView extends Component<IDrawingViewProps, IDrawingViewState> {
     if (!resizeCanvasCtx) return;
 
     resizeCanvasCtx.drawImage(this.canvas.current, 0, 0, this.props.width, this.props.height, 0, 0, 28, 28);
+
+    // let imgNum = document.createElement("img");
+    // imgNum.src = resizeCanvas.toDataURL("image/png");
+    // document.body.appendChild(imgNum);
+
     this.setState({data: resizeCanvas.toDataURL()});
 
     const data = resizeCanvasCtx.getImageData(0, 0, 28, 28).data;
 
     const imageArr = [];
-    for (let i = 0; i < data.length; i += 4) {
-        imageArr.push(1- data[i + 3]/ 255) ;
+    for (let i = 3; i < data.length; i += 4) {
+        imageArr.push(data[i] / 255) ;
     }
-    console.log(imageArr);
+    // console.log(imageArr);
     let postData = JSON.stringify({data: [imageArr]});
     let url = "https://mal2-api.azure-api.net/mnist/score"
 
